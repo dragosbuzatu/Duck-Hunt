@@ -1,0 +1,727 @@
+#include "lab_m1/tema/tema.h"
+
+#include <vector>
+#include <iostream>
+#include <math.h>
+#include <gl/GL.h>
+#include <gl/GLU.h>
+
+#include "lab_m1/tema/tema_transform2D.h"
+#include "lab_m1/tema/tema_object2D.h"
+
+
+using namespace std;
+using namespace m1;
+
+float ox, oy, tx, ty, sx, sy, radians, counter1 , firstAngle , finalFirstAngle;
+
+int random;
+int ox1FirstPoint;
+int oy1FirstPoint;
+int ox1SecondPoint;
+int oy1SecondPoint;
+int ox2FirstPoint;
+int oy2FirstPoint;
+int ox2SecondPoint;
+int oy2SecondPoint;
+int ox3FirstPoint;
+int oy3FirstPoint;
+int ox3SecondPoint;
+int oy3SecondPoint;
+int ox4FirstPoint;
+int oy4FirstPoint;
+int ox4SecondPoint;
+int oy4SecondPoint;
+int ok = 0;
+float random2;
+int contor1 = 0;
+int contor2 = 0;
+int contor3 = 0;
+int contor4 = 0;
+int contor5 = 0;
+int contor6 = 0;
+int init = 0;
+float lifetime = 0;
+float secondtime = 0;
+float timelimit = 7;
+float timelimit2 = 1;
+float OXfinal;
+float OYfinal;
+float speed=1;
+float currentHitboxOx;
+float currentHitboxOy;
+float copieHitboxOy;
+float copieHitboxOx;
+int duckkilled = 0;
+float killed = 0;
+float deadtime = 0;
+float bullet = 3;
+float life = 3;
+int scoreX = 300;
+int duckdead;
+
+/*
+ *  To find out more about `FrameStart`, `Update`, `FrameEnd`
+ *  and the order in which they are called, see `world.cpp`.
+ */
+
+
+tema::tema()
+{
+}
+
+
+tema::~tema()
+{
+}
+
+
+void tema::Init()
+{
+    glm::ivec2 resolution = window->GetResolution();
+    auto camera = GetSceneCamera();
+    camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y, 0.01f, 400);
+    camera->SetPosition(glm::vec3(0, 0, 50));
+    camera->SetRotation(glm::vec3(0, 0, 0));
+    camera->Update();
+    GetCameraInput()->SetActive(false);
+
+    glm::vec3 corner = glm::vec3(0, 0, 0);
+    float squareSide = 100;
+
+    glm::vec3 colorHead = glm::vec3(0.19, 0.34, 0.21);
+    glm::vec3 colorBody = glm::vec3(0.345, 0.227, 0.15);
+
+    sx = 1;
+    sy = 1;
+    radians = 0;
+    counter1 = 0;
+    
+    // TODO(student): Compute coordinates of a square's center, and store
+    // then in the `cx` and `cy` class variables (see the header). Use
+    // `corner` and `squareSide`. These two class variables will be used
+    // in the `Update()` function. Think about it, why do you need them?
+
+    // Initialize tx and ty (the translation steps)
+    translateX = 0;
+    translateY = 0;
+
+    // Initialize sx and sy (the scale factors)
+    scaleX = 1;
+    scaleY = 1;
+
+    // Initialize angularStep
+    angularStep = 0;
+
+    random2 = rand() % 6 + 3;
+    firstAngle = random2 / 10;
+    finalFirstAngle = firstAngle;
+
+     random = (rand() % 8 + 1) * 100;
+     ox1FirstPoint = random;
+     oy1FirstPoint = squareSide * 0.5 + 100;
+     ox1SecondPoint = random + 130;
+     oy1SecondPoint = squareSide * 0.25 + 100;
+     Mesh* triangle1 = tema_object2D::CreateTriangle(ox1FirstPoint, oy1FirstPoint, ox1SecondPoint, oy1SecondPoint, "triangle1", glm::vec3(random, 100, 0), squareSide, colorBody, true);
+
+    ox2FirstPoint = random + 55;
+    oy2FirstPoint = 60;
+    ox2SecondPoint = random + 80;
+    oy2SecondPoint = squareSide * 0.25 + 100;
+    Mesh* triangle2 = tema_object2D::CreateTriangle(ox2SecondPoint, oy2SecondPoint, random + 45, 120, "triangle2", glm::vec3(ox2FirstPoint, oy2FirstPoint, 0), squareSide, colorBody, true);
+
+    ox3FirstPoint = random + 55;
+    oy3FirstPoint = squareSide * 0.5 + 140;
+    ox3SecondPoint = random + 75;
+    oy3SecondPoint = squareSide * 0.25 + 110;
+    Mesh* triangle3 = tema_object2D::CreateTriangle(ox3SecondPoint, oy3SecondPoint, random + 45, 140, "triangle3", glm::vec3(ox3FirstPoint, oy3FirstPoint, 0), squareSide, colorBody, true);
+
+
+
+
+    Mesh* circleHead = tema_object2D::CreateCircle(random + 120 , squareSide * 0.25 + 100, 20, "circleHead", colorHead, true);
+
+
+    ox4FirstPoint = random + 140;
+    oy4FirstPoint = squareSide * 0.25 + 100;
+    ox4SecondPoint = random + 135;
+    oy4SecondPoint = squareSide * 0.25 + 90;
+    Mesh* triangle4 = tema_object2D::CreateTriangle(ox4FirstPoint, oy4FirstPoint, ox4SecondPoint, oy4SecondPoint, "triangle4", glm::vec3(random + 160, squareSide * 0.25 + 95, 0), squareSide, glm::vec3(255, 255, 0), true);
+
+
+    int squareox1 = random;
+    int squareoy1 = squareSide * 0.5 + 140;
+    int squareox2 = random + 160;
+    int squareoy2 = squareSide * 0.5 + 140;
+    int squareox3 = random + 160;
+    int squareoy3 = 60;
+    Mesh * hitbox = tema_object2D::CreateSquare(squareox1, squareoy1, squareox2, squareoy2, squareox3 , squareoy3 ,"hitbox", glm::vec3(random, 60, 0), squareSide, glm::vec3(20,0, 0), true);
+
+
+    Mesh* life1 = tema_object2D::CreateCircle(50, 680 , 20, "life1", glm::vec3(255, 0, 0), true);
+    Mesh* life2 = tema_object2D::CreateCircle(100, 680, 20, "life2", glm::vec3(255, 0, 0), true);
+    Mesh* life3 = tema_object2D::CreateCircle(150, 680, 20, "life3", glm::vec3(255, 0, 0), true);
+
+    Mesh* bullet1 = tema_object2D::CreateSquare(1100, 700, 1120, 700, 1120, 650, "bullet1", glm::vec3(1100, 650, 0), squareSide, glm::vec3(0, 100, 0), true);
+    Mesh* bullet2 = tema_object2D::CreateSquare(1150, 700, 1170, 700, 1170, 650, "bullet2", glm::vec3(1150, 650, 0), squareSide, glm::vec3(0, 100, 0), true);
+    Mesh* bullet3 = tema_object2D::CreateSquare(1200, 700, 1220, 700, 1220, 650, "bullet3", glm::vec3(1200, 650, 0), squareSide, glm::vec3(0, 100, 0), true);
+
+    Mesh* background = tema_object2D::CreateSquare(0, 200, 1280, 200, 1280, 0, "background", glm::vec3(0, 0, 0), squareSide, glm::vec3(0, 128, 0), true);
+    Mesh* scorebackground = tema_object2D::CreateSquare(400, 710, 900, 710, 900, 660, "scorebackground", glm::vec3(400, 660, 0), squareSide, glm::vec3(40, 128, 0), false);
+    Mesh* scorebar1 = tema_object2D::CreateSquare(400, 710, 500, 710, 500, 660, "scorebar1", glm::vec3(400, 660, 0), squareSide, glm::vec3(0, 0, 255), true);
+    Mesh* scorebar2 = tema_object2D::CreateSquare(400, 710, 600, 710, 600, 660, "scorebar2", glm::vec3(400, 660, 0), squareSide, glm::vec3(0, 0, 255), true);
+    Mesh* scorebar3 = tema_object2D::CreateSquare(400, 710, 700, 710, 700, 660, "scorebar3", glm::vec3(400, 660, 0), squareSide, glm::vec3(0, 0, 255), true);
+    Mesh* scorebar4 = tema_object2D::CreateSquare(400, 710, 800, 710, 800, 660, "scorebar4", glm::vec3(400, 660, 0), squareSide, glm::vec3(0, 0, 255), true);
+    Mesh* scorebar5 = tema_object2D::CreateSquare(400, 710, 900, 710, 900, 660, "scorebar5", glm::vec3(400, 660, 0), squareSide, glm::vec3(0, 0, 255), true);
+    AddMeshToList(triangle1);
+    AddMeshToList(triangle2);
+    AddMeshToList(triangle3);
+    AddMeshToList(triangle4);
+    AddMeshToList(circleHead);
+    AddMeshToList(life1);
+    AddMeshToList(life2);
+    AddMeshToList(life3);
+    AddMeshToList(bullet1);
+    AddMeshToList(bullet2);
+    AddMeshToList(bullet3);
+    AddMeshToList(background);
+    AddMeshToList(scorebackground);
+    AddMeshToList(scorebar1);
+    AddMeshToList(scorebar2);
+    AddMeshToList(scorebar3);
+    AddMeshToList(scorebar4);
+
+    OXfinal = random;
+    OYfinal = 100;
+    currentHitboxOx = random;
+    currentHitboxOy = 60;
+
+
+}
+
+
+void tema::FrameStart()
+{
+    // Clears the color buffer (using the previously set color) and depth buffer
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glm::ivec2 resolution = window->GetResolution();
+    // Sets the screen area where to draw
+    glViewport(0, 0, resolution.x, resolution.y);
+}
+
+
+void tema::Update(float deltaTimeSeconds)
+{
+
+    if (lifetime <= timelimit) {
+
+ 
+  
+        if (ok != 6) {
+            deadtime += deltaTimeSeconds;
+        }
+       
+        lifetime += deltaTimeSeconds;
+        if (ok == 0) {
+            if (tx * 20 * speed + random > 1200)
+                ok = 1;
+            if (tx * 20 * speed  + random < 0)
+                ok = 2;
+            if (ty * 10 * speed + 150 > 720)
+                ok = 3;
+            if (ty * 10 * speed + 150 < 0)
+                ok = 4;
+            else
+            {
+                tx += 20 * deltaTimeSeconds * cos(firstAngle);
+                ty += 20 * deltaTimeSeconds * sin(firstAngle);
+                radians = radians + deltaTimeSeconds;
+            }
+        }
+
+        if (ok == 1) {
+
+            if (tx * 20 * speed + random > 1200)
+                ok = 1;
+            if (tx * 20 * speed + random < 0)
+                ok = 2;
+            if (ty * 10 * speed + 150 > 720)
+                ok = 3;
+            if (ty * 10 * speed + 150 < 0)
+                ok = 4;
+
+
+            contor1++;
+            if (contor1 == 1)
+                firstAngle = M_PI - firstAngle;
+
+            tx += 20 * deltaTimeSeconds * cos(firstAngle);
+            ty += 20 * deltaTimeSeconds * sin(firstAngle);
+            radians = radians + deltaTimeSeconds;
+            contor2 = 0;
+            contor3 = 0;
+            contor4 = 0;
+            init = 1;
+        }
+
+        if (ok == 2) {
+
+            if (tx * 20 * speed + random > 1200)
+                ok = 1;
+            if (tx * 20 * speed + random < 0)
+                ok = 2;
+            if (ty * 10 * speed + 150 > 720)
+                ok = 3;
+            if (ty * 10 * speed + 150 < 0)
+                ok = 4;
+
+
+            contor2++;
+            if (contor2 == 1)
+                firstAngle = M_PI - firstAngle;
+
+            tx += 20 * deltaTimeSeconds * cos(firstAngle);
+            ty += 20 * deltaTimeSeconds * sin(firstAngle);
+            radians = radians + deltaTimeSeconds;
+            contor1 = 0;
+            contor3 = 0;
+            contor4 = 0;
+            init = 1;
+        }
+
+        if (ok == 3) {
+
+            if (tx * 20 * speed + random > 1200)
+                ok = 1;
+            if (tx * 20 * speed + random < 0)
+                ok = 2;
+            if (ty * 10 * speed + 150 > 720)
+                ok = 3;
+            if (ty * 10 * speed + 150 < 0)
+                ok = 4;
+
+            contor3++;
+            if (contor3 == 1)
+                firstAngle = 2 * M_PI - firstAngle;
+
+            tx += 20 * deltaTimeSeconds * cos(firstAngle);
+            ty += 20 * deltaTimeSeconds * sin(firstAngle);
+            radians = radians + deltaTimeSeconds;
+            contor1 = 0;
+            contor2 = 0;
+            contor4 = 0;
+            init = 1;
+        }
+
+        if (ok == 4) {
+
+            if (tx * 20 * speed + random > 1200)
+                ok = 1;
+            if (tx * 20 * speed + random < 0)
+                ok = 2;
+            if (ty * 10 * speed + 150 > 720)
+                ok = 3;
+            if (ty * 10 * speed + 150 < 0)
+                ok = 4;
+
+            contor4++;
+            if (contor4 == 1)
+                firstAngle = 2 * M_PI - firstAngle;
+
+            tx += 20 * deltaTimeSeconds * cos(firstAngle);
+            ty += 20 * deltaTimeSeconds * sin(firstAngle);
+
+            radians = radians + deltaTimeSeconds;
+            contor1 = 0;
+            contor2 = 0;
+            contor3 = 0;
+            init = 1;
+        }
+
+ 
+
+        if (ok == 6) {
+
+            if (ty * 10 * speed + 150 < 0) {
+                ok = 0;
+                contor1 = 0;
+                contor2 = 0;
+                contor3 = 0;
+                contor4 = 0;
+                contor6 = 0;
+                init = 1;
+                killed = 1;
+                duckkilled++;
+                duckdead++;
+                if (duckdead == 5)
+                    duckdead = 0;
+                random2 = rand() % 6 + 3;
+                finalFirstAngle = random2 / 10;
+                timelimit += deadtime;
+                deadtime = 0;
+                bullet = 3;  
+  
+            }
+       
+            firstAngle = 3 * M_PI / 2;
+
+
+            timelimit += deltaTimeSeconds;
+            tx += 20 * deltaTimeSeconds * cos(firstAngle);
+            ty += 20 * deltaTimeSeconds * sin(firstAngle);
+
+            radians = radians + deltaTimeSeconds;
+            
+          
+        }
+    }
+    else {
+        contor5++;
+        if (contor5 == 1) {
+            firstAngle = M_PI / 2;
+            duckkilled++;
+            random2 = rand() % 6 + 2;
+            finalFirstAngle = random2 / 10;
+            contor1 = 0;
+            contor2 = 0;
+            contor3 = 0;
+            contor4 = 0;
+            deadtime = 0;
+            bullet = 3;
+            life--;
+          
+
+        }
+
+        if (ty * 10 + 150 > 720)
+            ok = 5;
+        tx += 20 * deltaTimeSeconds * cos(firstAngle);
+        ty += 20 * deltaTimeSeconds * sin(firstAngle);
+    }
+
+
+    if (lifetime >= timelimit && ok == 5) {
+        secondtime += deltaTimeSeconds;
+    }
+
+    if (secondtime >= timelimit2) {
+        timelimit += 7;
+        ty = 0;
+        contor5 = 0;
+    }
+
+    OXfinal += 20 * 20 * deltaTimeSeconds * cos(firstAngle) * speed;
+    OYfinal += 20 * 10 * deltaTimeSeconds * sin(firstAngle) * speed;
+    if (OYfinal > 1280)
+        OYfinal = 0;
+
+
+    if (duckkilled == 5) {
+        speed = speed * 1.2;
+        duckkilled = 0;
+    }
+
+
+    modelMatrix = glm::mat3(1);
+    RenderMesh2D(meshes["background"], shaders["VertexColor"], modelMatrix);
+
+    //cap
+
+
+    modelMatrix = glm::mat3(1);
+    modelMatrix *= tema_transform2D::Translate(tx * 20 *  speed, ty * 10 * speed);
+    if (ok == 0 && secondtime < timelimit2) {
+        modelMatrix *= tema_transform2D::Translate(random, 100);
+        modelMatrix *= tema_transform2D::Rotate(firstAngle);
+        modelMatrix *= tema_transform2D::Translate(-random, -100);
+    }
+    else if (secondtime > timelimit2 || killed == 1) {
+        ok = 0;
+        firstAngle = finalFirstAngle;
+        modelMatrix *= tema_transform2D::Translate(0, -OYfinal);
+        killed = 0;
+    }
+    else {
+        modelMatrix *= tema_transform2D::Translate(random, 100);
+        modelMatrix *= tema_transform2D::Rotate(firstAngle);
+        modelMatrix *= tema_transform2D::Translate(-random, -100);
+    }
+    RenderMesh2D(meshes["circleHead"], shaders["VertexColor"], modelMatrix);
+  
+
+
+    //corp
+    modelMatrix = glm::mat3(1);
+    modelMatrix *= tema_transform2D::Translate(tx * 20 * speed, ty * 10 * speed);
+    if (ok == 0 && secondtime < timelimit2) {
+        modelMatrix *= tema_transform2D::Translate(random, 100);
+        modelMatrix *= tema_transform2D::Rotate(firstAngle);
+        modelMatrix *= tema_transform2D::Translate(-random, -100);
+    }
+    else if (secondtime > timelimit2 || killed == 1) {
+        ok = 0;
+        firstAngle = finalFirstAngle;
+        modelMatrix *= tema_transform2D::Translate(0, -OYfinal);
+        killed = 0;
+    }
+    else {
+        modelMatrix *= tema_transform2D::Translate(random, 100);
+        modelMatrix *= tema_transform2D::Rotate(firstAngle);
+        modelMatrix *= tema_transform2D::Translate(-random, -100);
+    }
+    RenderMesh2D(meshes["triangle1"], shaders["VertexColor"], modelMatrix);
+
+    //aripile
+    if (radians < M_PI_4) {
+
+        modelMatrix = glm::mat3(1);
+        modelMatrix *= tema_transform2D::Translate(tx * 20 * speed, ty * 10 * speed);
+        
+        if (ok == 0 && secondtime < timelimit2) {
+            modelMatrix *= tema_transform2D::Translate(random, 100);
+            modelMatrix *= tema_transform2D::Rotate(firstAngle);
+            modelMatrix *= tema_transform2D::Translate(-random, -100);
+        }
+        else if (secondtime > timelimit2 || killed == 1) {
+            ok = 0;
+            firstAngle = finalFirstAngle;
+            modelMatrix *= tema_transform2D::Translate(0, -OYfinal);
+            killed = 0;
+        }
+        else {
+            modelMatrix *= tema_transform2D::Translate(random, 100);
+            modelMatrix *= tema_transform2D::Rotate(firstAngle);
+            modelMatrix *= tema_transform2D::Translate(-random, -100);
+        }
+
+
+        modelMatrix *= tema_transform2D::Translate(ox2SecondPoint, oy2SecondPoint);
+        modelMatrix *= tema_transform2D::Rotate(-radians);
+        modelMatrix *= tema_transform2D::Translate(-ox2SecondPoint, - oy2SecondPoint);
+        RenderMesh2D(meshes["triangle2"], shaders["VertexColor"], modelMatrix);
+
+        modelMatrix = glm::mat3(1);
+        modelMatrix *= tema_transform2D::Translate(tx * 20 * speed, ty * 10 * speed);
+
+        if (ok == 0 && secondtime < timelimit2) {
+            modelMatrix *= tema_transform2D::Translate(random, 100);
+            modelMatrix *= tema_transform2D::Rotate(firstAngle);
+            modelMatrix *= tema_transform2D::Translate(-random, -100);
+        }
+        else if (secondtime > timelimit2 || killed == 1) {
+            ok = 0;
+            firstAngle = finalFirstAngle;
+            modelMatrix *= tema_transform2D::Translate(0, -OYfinal);
+            killed = 0;
+        }
+        else {
+            modelMatrix *= tema_transform2D::Translate(random, 100);
+            modelMatrix *= tema_transform2D::Rotate(firstAngle);
+            modelMatrix *= tema_transform2D::Translate(-random, -100);
+        }
+
+        modelMatrix *= tema_transform2D::Translate(ox3SecondPoint, oy3SecondPoint);
+        modelMatrix *= tema_transform2D::Rotate (radians);
+        modelMatrix *= tema_transform2D::Translate(-ox3SecondPoint, -oy3SecondPoint);
+        RenderMesh2D(meshes["triangle3"], shaders["VertexColor"], modelMatrix);
+    }
+    else
+        radians = 0;
+
+
+
+    //ciocul
+    modelMatrix = glm::mat3(1);
+    modelMatrix *= tema_transform2D::Translate(tx * 20 * speed, ty * 10 * speed);
+    if (ok == 0 && secondtime < timelimit2) {
+        modelMatrix *= tema_transform2D::Translate(random, 100);
+        modelMatrix *= tema_transform2D::Rotate(firstAngle);
+        modelMatrix *= tema_transform2D::Translate(-random, -100);
+    }
+    else if (secondtime > timelimit2 || killed == 1) {
+        ok = 0;
+        firstAngle = finalFirstAngle;
+        modelMatrix *= tema_transform2D::Translate(0, -OYfinal);
+        killed = 0;
+    }
+    else {
+        modelMatrix *= tema_transform2D::Translate(random, 100);
+        modelMatrix *= tema_transform2D::Rotate(firstAngle);
+        modelMatrix *= tema_transform2D::Translate(-random, -100);
+    }
+    RenderMesh2D(meshes["triangle4"], shaders["VertexColor"], modelMatrix);
+ 
+
+
+    //hitbox
+    modelMatrix = glm::mat3(1);
+    modelMatrix *= tema_transform2D::Translate(tx * 20 * speed, ty * 10 * speed);
+
+
+    if (ok == 0 && secondtime < timelimit2) {
+
+
+        currentHitboxOx = random + tx * 20 * speed;
+        currentHitboxOy = 110 + ty * 10 * speed;
+        currentHitboxOx = currentHitboxOx + sin(firstAngle) * 40;
+        currentHitboxOy = currentHitboxOy - cos(firstAngle) * 40;
+
+        modelMatrix *= tema_transform2D::Translate(random, 100);
+        modelMatrix *= tema_transform2D::Rotate(firstAngle);
+        modelMatrix *= tema_transform2D::Translate(-random, -100);
+    }
+    else if (secondtime > timelimit2 || killed == 1) {
+        ok = 0;
+        firstAngle = finalFirstAngle;
+        modelMatrix *= tema_transform2D::Translate(0, -OYfinal);
+        killed = 0;
+    }
+    else {
+        currentHitboxOx = random + tx * 20 * speed;
+        currentHitboxOy = 110 + ty * 10 * speed;
+        currentHitboxOx = currentHitboxOx + sin(firstAngle) * 40;
+        currentHitboxOy = currentHitboxOy - cos(firstAngle) * 40;
+        modelMatrix *= tema_transform2D::Translate(random, 100);
+        modelMatrix *= tema_transform2D::Rotate(firstAngle);
+        modelMatrix *= tema_transform2D::Translate(-random, -100);
+
+    }
+    
+    RenderMesh2D(meshes["hitbox"], shaders["VertexColor"], modelMatrix);
+
+    if (secondtime >= timelimit2)
+        timelimit2++;
+
+    modelMatrix = glm::mat3(1);
+
+    if (life == 3) {
+        RenderMesh2D(meshes["life1"], shaders["VertexColor"], modelMatrix);
+        modelMatrix = glm::mat3(1);
+        RenderMesh2D(meshes["life2"], shaders["VertexColor"], modelMatrix);
+        modelMatrix = glm::mat3(1);
+        RenderMesh2D(meshes["life3"], shaders["VertexColor"], modelMatrix);
+    }
+
+    if (life == 2) {
+        RenderMesh2D(meshes["life1"], shaders["VertexColor"], modelMatrix);
+        modelMatrix = glm::mat3(1);
+        RenderMesh2D(meshes["life2"], shaders["VertexColor"], modelMatrix);
+    }
+
+    if (life == 1) {
+        RenderMesh2D(meshes["life1"], shaders["VertexColor"], modelMatrix);
+        modelMatrix = glm::mat3(1);
+    }
+
+    if (bullet == 3) {
+        modelMatrix = glm::mat3(1);
+        RenderMesh2D(meshes["bullet1"], shaders["VertexColor"], modelMatrix);
+        modelMatrix = glm::mat3(1);
+        RenderMesh2D(meshes["bullet2"], shaders["VertexColor"], modelMatrix);
+        modelMatrix = glm::mat3(1);
+        RenderMesh2D(meshes["bullet3"], shaders["VertexColor"], modelMatrix);
+        }
+    if (bullet == 2) {
+        modelMatrix = glm::mat3(1);
+        RenderMesh2D(meshes["bullet1"], shaders["VertexColor"], modelMatrix);
+        modelMatrix = glm::mat3(1);
+        RenderMesh2D(meshes["bullet2"], shaders["VertexColor"], modelMatrix);
+    }
+    if (bullet == 1) {
+        modelMatrix = glm::mat3(1);
+        RenderMesh2D(meshes["bullet1"], shaders["VertexColor"], modelMatrix);
+    }
+    modelMatrix = glm::mat3(1);
+    RenderMesh2D(meshes["scorebackground"], shaders["VertexColor"], modelMatrix);
+
+    cout << duckkilled;
+
+    if (duckdead == 1) {
+        modelMatrix = glm::mat3(1);
+        RenderMesh2D(meshes["scorebar1"], shaders["VertexColor"], modelMatrix);
+    }
+    if (duckdead == 2) {
+        modelMatrix = glm::mat3(1);
+        RenderMesh2D(meshes["scorebar2"], shaders["VertexColor"], modelMatrix);
+    }
+    if (duckdead == 3) {
+        modelMatrix = glm::mat3(1);
+        RenderMesh2D(meshes["scorebar3"], shaders["VertexColor"], modelMatrix);
+    }
+    if (duckdead == 4) {
+        modelMatrix = glm::mat3(1);
+        RenderMesh2D(meshes["scorebar4"], shaders["VertexColor"], modelMatrix);
+    }
+  
+ 
+
+}
+
+
+void tema::FrameEnd()
+{
+}
+
+
+/*
+ *  These are callback functions. To find more about callbacks and
+ *  how they behave, see `input_controller.h`.
+ */
+
+
+void tema::OnInputUpdate(float deltaTime, int mods)
+{
+    
+}
+
+
+void tema::OnKeyPress(int key, int mods)
+{
+    // Add key press event
+}
+
+
+void tema::OnKeyRelease(int key, int mods)
+{
+    // Add key release event
+}
+
+
+void tema::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
+{
+    
+}
+
+
+void tema::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
+{
+    mouseX = mouseX;
+    mouseY = 720 - mouseY;
+    float mouseXcopie = mouseX - currentHitboxOx;
+    float mouseYcopie = mouseY - currentHitboxOy;
+    mouseX = mouseXcopie * cos(-firstAngle) - sin(-firstAngle) * mouseYcopie;
+    mouseY = mouseYcopie * cos(-firstAngle) + sin(-firstAngle) * mouseXcopie;
+    if (mouseX > 0 && mouseX < 160 && mouseY > 0 && mouseY < 130) 
+        ok = 6;
+    
+    else
+        bullet--;
+}
+
+
+void tema::OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods)
+{
+    // Add mouse button release event
+}
+
+
+void tema::OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY)
+{
+}
+
+
+void tema::OnWindowResize(int width, int height)
+{
+}
